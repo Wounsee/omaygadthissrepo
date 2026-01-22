@@ -21,53 +21,60 @@ document.addEventListener('contextmenu', function(e) {
     return false;
 });
 
-let downloadLink = '';
-let isDownloading = false; // Флаг для отслеживания состояния загрузки
+let downloadPath = ''; // Хранит путь к файлу
+let isDownloading = false;
 
-async function fetchDownloadLink() {
+// Функция получает имя файла из version.txt
+async function fetchLocalVersion() {
     try {
-        const response = await fetch('https://raw.githubusercontent.com/Wounsee/ev/refs/heads/main/link');
-        downloadLink = (await response.text()).trim();
-        return downloadLink;
+        // Добавляем Date.now(), чтобы браузер не кешировал старое имя файла
+        const response = await fetch('ver/version.txt?t=' + Date.now());
+        
+        if (!response.ok) throw new Error('Файл version.txt не найден');
+        
+        const fileName = (await response.text()).trim();
+        // Собираем полный путь: папка + имя файла
+        downloadPath = 'ver/' + fileName;
+        return downloadPath;
     } catch (e) {
-        console.error('Failed to fetch:', e);
+        console.error('Ошибка при поиске файла:', e);
         return null;
     }
 }
 
-// Загружаем ссылку при загрузке страницы
-fetchDownloadLink();
+// Пытаемся получить имя файла сразу при загрузке страницы
+fetchLocalVersion();
 
 async function downloadMod(btn, version) {
-    // Если уже идет загрузка - выходим
     if (isDownloading) return;
     
-    // Устанавливаем флаг загрузки
     isDownloading = true;
-    
-    // Добавляем класс loading для показа спиннера
     btn.classList.add('loading');
     
-    // Если ссылка еще не загружена, загружаем
-    if (!downloadLink) {
-        downloadLink = await fetchDownloadLink();
+    // Если путь еще не получен, пробуем получить снова
+    if (!downloadPath) {
+        downloadPath = await fetchLocalVersion();
     }
     
-    // Имитируем задержку для UX
     setTimeout(() => {
-        if (downloadLink && version === '1.16.5') {
-            // Перенаправляем на скачивание
-            window.location.href = downloadLink;
+        if (downloadPath && version === '1.16.5') {
+            // Создаем временную ссылку для принудительного скачивания
+            const link = document.createElement('a');
+            link.href = downloadPath;
+            // Атрибут download подсказывает браузеру, что это скачивание
+            link.setAttribute('download', ''); 
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
             showToast(`Загрузка версии ${version} началась!`);
             
-            // Сбрасываем флаг после начала загрузки
             setTimeout(() => {
                 isDownloading = false;
                 btn.classList.remove('loading');
             }, 1000);
         } else {
-            showToast('Ошибка загрузки. Попробуйте позже.');
-            // Сбрасываем флаг и убираем состояние загрузки при ошибке
+            showToast('Ошибка: файл не найден. Сообщите администратору.');
             isDownloading = false;
             btn.classList.remove('loading');
         }
@@ -88,30 +95,24 @@ function showToast(message) {
     }
 }
 
-// Проверяем и исправляем состояние спиннера при загрузке страницы
+// Инициализация при загрузке
 document.addEventListener('DOMContentLoaded', function() {
     const downloadBtn = document.getElementById('download-btn-1165');
     if (downloadBtn) {
-        // Убеждаемся, что спиннер скрыт при загрузке
         downloadBtn.classList.remove('loading');
-        
-        // Сбрасываем флаг загрузки
         isDownloading = false;
     }
 });
 
-// Плавный скролл к верху страницы при клике на логотип
+// Скролл к верху
 document.querySelectorAll('.logo').forEach(logo => {
     logo.addEventListener('click', function(e) {
         e.preventDefault();
-        window.scrollTo({
-            top: 0,
-            behavior: 'smooth'
-        });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     });
 });
 
-// Scroll animations
+// Анимации появления
 const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
         if (entry.isIntersecting) {
@@ -122,7 +123,7 @@ const observer = new IntersectionObserver((entries) => {
 
 document.querySelectorAll('.animate').forEach(el => observer.observe(el));
 
-// Smooth scroll for anchor links
+// Плавный скролл по якорям
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function (e) {
         e.preventDefault();
