@@ -14,7 +14,7 @@ document.addEventListener('contextmenu', function(e) { e.preventDefault(); retur
 // ═══════════════════════════════════════
 
 let isDownloading = false;
-const MODRINTH_URL = 'https://modrinth.com/mod/enoughvisuals/versions';
+const MODRINTH_URL = 'https://cdn.modrinth.com/data/5otNeFmH/versions/dmrZKG90/enoughvisuals-1.0.jar';
 
 async function downloadMod(btn) {
     if (isDownloading) return;
