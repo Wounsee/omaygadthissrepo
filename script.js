@@ -10,48 +10,30 @@ document.addEventListener('keydown', function(e) {
 document.addEventListener('contextmenu', function(e) { e.preventDefault(); return false; });
 
 // ═══════════════════════════════════════
-// DOWNLOAD
+// DOWNLOAD (MODRINTH REDIRECT)
 // ═══════════════════════════════════════
 
-let downloadPath = '';
 let isDownloading = false;
+const MODRINTH_URL = 'https://modrinth.com/mod/enoughvisuals/versions';
 
-async function fetchLocalVersion() {
-    try {
-        const response = await fetch('ver/version.txt?t=' + Date.now());
-        if (!response.ok) throw new Error('version.txt not found');
-        const fileName = (await response.text()).trim();
-        downloadPath = 'ver/' + fileName;
-        return downloadPath;
-    } catch (e) {
-        return null;
-    }
-}
-
-fetchLocalVersion();
-
-async function downloadMod(btn, version) {
+async function downloadMod(btn) {
     if (isDownloading) return;
+    
     isDownloading = true;
     btn.classList.add('loading');
 
-    if (!downloadPath) downloadPath = await fetchLocalVersion();
-
+    // Небольшая задержка для визуального отклика кнопки
     setTimeout(() => {
-        if (downloadPath && version === '1.16.5') {
-            const link = document.createElement('a');
-            link.href = downloadPath;
-            link.setAttribute('download', '');
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            showToast('Загрузка версии ' + version + ' началась!');
-            setTimeout(() => { isDownloading = false; btn.classList.remove('loading'); }, 1000);
-        } else {
-            showToast('Ошибка: файл не найден');
-            isDownloading = false;
-            btn.classList.remove('loading');
-        }
+        // Открывает ссылку в новой вкладке
+        window.open(MODRINTH_URL, '_blank');
+        
+        showToast('Для скачивания необходим VPN');
+
+        // Возвращаем кнопку в исходное состояние
+        setTimeout(() => { 
+            isDownloading = false; 
+            btn.classList.remove('loading'); 
+        }, 1000);
     }, 800);
 }
 
@@ -64,6 +46,7 @@ function showToast(message) {
         setTimeout(() => toast.classList.remove('show'), 3000);
     }
 }
+
 
 // ═══════════════════════════════════════
 // PARTICLES
