@@ -27,7 +27,7 @@ async function downloadMod(btn) {
         // Открывает ссылку в новой вкладке
         window.open(MODRINTH_URL, '_blank');
         
-        showToast('Для скачивания необходим VPN');
+        showToast('Загрузка началась!');
 
         // Возвращаем кнопку в исходное состояние
         setTimeout(() => { 
